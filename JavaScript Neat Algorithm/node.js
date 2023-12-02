@@ -14,6 +14,35 @@ class Node {
 
     }
 
+    mutateBias(mutationRate) {
+        let rand = random(0, 1);
+        let a = 0.02; //Probability of case 1 
+        let b = 0.02; //Probability of case 2
+        let c = 0.02; //Probability of case 3
+
+        if(rand < a) { //Replace with new value
+            this.bias = random(-1, 1);
+            return 0;
+        }
+
+        if(rand < a + b) { //Multiply by random percentage
+            this.bias *= random(0.5, 1.5);
+            return 0;
+        }
+
+        if(rand < a + b + c) { //Add random number
+            this.bias += random(-1, 1);
+            return 0;
+        }
+
+        //Add random gaussian number gigachad
+        this.bias += gaussianRandom() * mutationRate;
+    }
+
+    mutateActivation() {
+        this.activation = randint(0, activations.length - 1);
+    }
+
     activate() {
         // Apply activation function 
         this.outputValue = activationFunctions[activations[this.activation]](this.inputSum + this.bias);
@@ -27,5 +56,13 @@ class Node {
                 this.outputConnections[i].toNode.inputSum += this.outputValue * this.outputConnections[i].weight;
             }
         }
+    }
+
+    copy() {
+        let copy = new Node(this.id, this.type, this.layer);
+        copy.bias = this.bias;
+        copy.activation = this.activation;
+
+        return copy;
     }
 }

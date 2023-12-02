@@ -31,4 +31,13 @@ class Connection {
         //Add random gaussian number gigachad
         this.weight += gaussianRandom() * mutationRate;
     }
+
+    copy(nodeMap) {
+        let fromNodeCopy = nodeMap.get(this.fromNode.id);
+        let toNodeCopy = nodeMap.get(this.toNode.id);
+
+        let copy = new Connection(fromNodeCopy, toNodeCopy, this.weight, this.enabled, this.innovation);
+
+        return copy;
+    }
 }
