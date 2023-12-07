@@ -11,8 +11,6 @@ class Genome {
         this.nextNode = 1;
         this.innovationNumber = 1;
 
-
-
         if(!offspring) {
             for(let i = 0; i < this.inputs; i++) {
                 this.createNode('sensor', 0);
@@ -24,7 +22,7 @@ class Genome {
 
             for(let i = 0; i < this.inputs; i++) {
                 for(let o = this.inputs; o < this.nodes.length; o++) {
-                    this.createConnection(i, o);
+                    this.createConnection(this.nodes[i].id, this.nodes[o].id);
                 }
             }
         }
@@ -38,10 +36,12 @@ class Genome {
 
     //creates a new connection given from node, to node, and weight
     createConnection(from, to, weight = random(-1, 1)) {
-        let conn = new Connection(this.nodes[from], this.nodes[to], weight, true, this.innovationNumber)
-        this.connections.push(conn);
-        this.nodes[from].outputConnections.push(conn);
+        let fromNode = this.nodes.find(n => n.id == from);
+        let toNode = this.nodes.find(n => n.id == to);
+        let conn = new Connection(fromNode, toNode, weight, true, this.innovationNumber);
         this.innovationNumber++;
+        this.connections.push(conn);
+        fromNode.outputConnections.push(conn);
     }
 
     //adds already created node
@@ -86,7 +86,7 @@ class Genome {
 
         if(pairs.length > 0) {
             let pair = pairs[randint(0, pairs.length - 1)];
-            this.createConnection(pair[0], pair[1]);
+            this.createConnection(pair[0].id, pair[1].id);
         }
     }
 
@@ -134,7 +134,7 @@ class Genome {
             let copy = conn.copy(nodeMap);
         
             // Check if the partner genome has a connection with the same innovation number
-            let match = partner.connections.find(c => c.innovationNumber == conn.innovationNumber);
+            let match = partner.connections.find(c => c.innovation == conn.innovation);
         
             // If there is a match, randomly choose the weight from either connection
             if (match) {
@@ -147,21 +147,59 @@ class Genome {
             child.addConnection(copy);
         
             // Add the innovation number to the set
-            connectionSet.add(conn.innovationNumber);
+            connectionSet.add(conn.innovation);
+            }
+        }
+
+        // Loop through the nodes of the second parent
+        for (let node of partner.nodes) {
+            // Check if the node has already been copied
+            if (!nodeMap.has(node.id)) {
+            // Copy the node to the child genome
+            let copy = node.copy();
+            child.addNode(copy);
+        
+            // Add the node to the node map
+            nodeMap.set(node.id, copy);
             }
         }
 
         for(let conn of partner.connections) {
-            if(conn.enabled && !connectionSet.has(conn.innovationNumber)) {
+            if(conn.enabled && !connectionSet.has(conn.innovation)) {
                 let copy = conn.copy(nodeMap);
 
                 child.addConnection(copy);
 
-                connectionSet.add(conn.innovationNumber);
+                connectionSet.add(conn.innovation);
             }
         }
 
         return child;
+    }
+
+    mutateNode() {
+        let connIndex = randint(0, this.connections.length-1);
+        let conn = this.connections[connIndex];
+        
+        // Disable the connection
+        conn.enabled = false;
+      
+        // Create a new node with type 'hidden' and layer between the connection's nodes
+        let newNode = new Node(this.nextNode, 'hidden', conn.fromNode.layer + 1);
+        this.nodes.forEach((node) => { //Shift all nodes layer value
+			if (node.layer > conn.fromNode.layer)
+				node.layer++;
+		});
+        this.addNode(newNode);
+      
+        // Create a new connection from the original connection's from node to the new node with weight 1
+        this.createConnection(conn.fromNode.id, newNode.id, 1);
+      
+        // Create a new connection from the new node to the original connection's to node with the original connection's weight
+        this.createConnection(newNode.id, conn.toNode.id, conn.weight);
+        
+        conn.fromNode.outputConnections = conn.fromNode.outputConnections.filter(c => c.innovation != conn.innovation);
+        this.connections = this.connections.filter(c => c.innovation != conn.innovation);
     }
 
     mutate(mutationRate = 0.02) {
@@ -185,7 +223,11 @@ class Genome {
         if(random(0, 1) < 0.05) { //5% chance to add connection
             this.generateConnection();
         } 
+
+        if(random(0, 1) < 0.01) { //1% chance to mutate a brand new node
+            this.mutateNode();
+            console.log("NOD ADDED")
+            loop = false;
+        }
     }
-
-
 }

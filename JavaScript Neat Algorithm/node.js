@@ -3,7 +3,7 @@ const activations = ["abs", "clamped", "cube", "exp", "gauss", "hat", "identity"
 class Node {
     constructor(id, type, layer) {
         this.id = id; // Unique identifier for the node
-        this.type = type; // Type of the node ('sensor', 'hidden', 'output')
+        this.type = type; // Type of the node ('sensor', 'hidden', 'output'), didn't end up using this :')
         this.layer = layer; //The layer the node is in, lol
 
         this.inputSum = 0; // Sum of inputs
@@ -35,7 +35,7 @@ class Node {
             return 0;
         }
 
-        //Add random gaussian number gigachad
+        //Add random gaussian number, like gaussian distribution, like the bell curve thing, like its close to 0 basically
         this.bias += gaussianRandom() * mutationRate;
     }
 
@@ -64,5 +64,12 @@ class Node {
         copy.activation = this.activation;
 
         return copy;
+    }
+
+    incrementLayer() {
+        this.layer++;
+        for(let conn of this.outputConnections) {
+            conn.toNode.incrementLayer();
+        }
     }
 }
