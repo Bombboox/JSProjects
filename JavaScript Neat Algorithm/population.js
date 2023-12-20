@@ -1,47 +1,35 @@
-const breed = (population, offspring) => {
-    let new_generation = [];
-    let total_fitness = 0;
+class Population {
+    constructor(numIndividuals, individualTemplate) {
+        this.pop = [];
+        this.individualTemplate = individualTemplate;
 
-    for(let individual in population) {
-        total_fitness += individual.fitness;
+        for(let i = 0; i < numIndividuals; i++) {
+            let copy = new individualTemplate();
+            this.pop.push(copy);
+        }
     }
 
-    while(new_generation.length < offspring) {
-        let parent_1;
-        let parent_2;
-
-        while(!parent_1) {
-            let r1 = random(0, total_fitness);
-            cum_fitness = 0;
-            for(let individual in population) {
-                cum_fitness += individual.fitness;
-
-                if(cum_fitness > r1) {
-                    parent_1 = individual;
-                    break;
-                }
-            }
+    breed() {
+        // Sort the population in descending order of fitness
+        let sortedPop = this.pop.sort((a, b) => b.fitness - a.fitness);
+    
+        // Select the top 10% of individuals
+        let survivors = sortedPop.slice(0, Math.ceil(0.1 * sortedPop.length));
+    
+        // Randomly breed individuals from the survivors
+        let offspring = [];
+        while (offspring.length < this.pop.length) {
+            let parent1 = survivors[randint(0, survivors.length - 1)];
+            let parent2 = survivors[randint(0, survivors.length - 1)];
+    
+            let child = new this.individualTemplate();
+            child.genome = parent1.genome.crossover(parent2.genome);
+            child.genome.mutate();
+    
+            offspring.push(child);
         }
-
-        while(!parent_2) {
-            let r1 = random(0, total_fitness);
-            cum_fitness = 0;
-            for(let individual in population) {
-                cum_fitness += individual.fitness;
-
-                if(cum_fitness > r1) {
-                    parent_1 = individual;
-                    break;
-                }
-            }
-        }
-
-        let child = new Individual();
-        child.genome = parent_1.genome.crossover(parent_2.genome);
-        child.genome.mutate();
-
-        new_generation.append(child);
+    
+        // Replace the current population with the new generation
+        this.pop = offspring;
     }
-
-    return new_generation;
 }

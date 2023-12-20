@@ -1,6 +1,6 @@
 class Individual {
-    constructor() {
-        this.genome = new Genome(2, 2, false);
+    constructor(inputs, outputs) {
+        this.genome = new Genome(inputs, outputs, false);
         this.fitness = 0;
     }
 }

@@ -90,15 +90,16 @@ class Genome {
         }
     }
 
-    run() {
+    run(inputs) {
         // Sort the nodes by their layer
         this.nodes.sort((a, b) => a.layer - b.layer);
       
         // Activate the input nodes
         for (let i = 0; i < this.inputs; i++) {
-          this.nodes[i].activate();
+            this.nodes[i].inputSum = inputs[i];
+            this.nodes[i].activate();
         }
-      
+
         // Activate the hidden and output nodes
         for (let i = this.inputs; i < this.nodes.length; i++) {
             this.nodes[i].activate();
@@ -129,7 +130,6 @@ class Genome {
         // Loop through the connections of the first parent
         for (let conn of this.connections) {
             // Check if the connection is enabled
-            if (conn.enabled) {
             // Copy the connection to the child genome
             let copy = conn.copy(nodeMap);
         
@@ -148,7 +148,6 @@ class Genome {
         
             // Add the innovation number to the set
             connectionSet.add(conn.innovation);
-            }
         }
 
         // Loop through the nodes of the second parent
@@ -165,7 +164,7 @@ class Genome {
         }
 
         for(let conn of partner.connections) {
-            if(conn.enabled && !connectionSet.has(conn.innovation)) {
+            if(!connectionSet.has(conn.innovation)) {
                 let copy = conn.copy(nodeMap);
 
                 child.addConnection(copy);
@@ -186,10 +185,13 @@ class Genome {
       
         // Create a new node with type 'hidden' and layer between the connection's nodes
         let newNode = new Node(this.nextNode, 'hidden', conn.fromNode.layer + 1);
-        this.nodes.forEach((node) => { //Shift all nodes layer value
-			if (node.layer > conn.fromNode.layer)
-				node.layer++;
-		});
+
+        if(newNode.layer == conn.toNode.layer) {
+            this.nodes.forEach((node) => { //Shift all nodes layer value
+                if (node.layer > conn.fromNode.layer) node.layer++;
+            });
+        }
+
         this.addNode(newNode);
       
         // Create a new connection from the original connection's from node to the new node with weight 1
@@ -226,8 +228,6 @@ class Genome {
 
         if(random(0, 1) < 0.01) { //1% chance to mutate a brand new node
             this.mutateNode();
-            console.log("NOD ADDED")
-            loop = false;
         }
     }
 }

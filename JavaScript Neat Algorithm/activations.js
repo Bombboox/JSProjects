@@ -13,5 +13,6 @@ const activationFunctions = {
     sigmoid: (num) => 1 / (1 + E**(-num)),
     tanh: (num) => Math.tanh(num),
     square: (num) => num**2,
-    sin: (num) => Math.sin(num)
+    sin: (num) => Math.sin(num),
+    hyp: (num) => (E**num - E**(-num)) / (E**num + E**(-num))
 }
