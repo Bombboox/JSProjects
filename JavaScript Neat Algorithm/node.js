@@ -11,7 +11,6 @@ class Node {
         this.outputConnections = []; // List of connections to other nodes
         this.activation = randint(0, activations.length - 1); //Activation function randomly chose from array
         this.bias = random(-1, 1); //Random bias from -1 to 1
-
     }
 
     mutateBias(mutationRate) {

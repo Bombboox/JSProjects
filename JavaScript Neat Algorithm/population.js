@@ -32,4 +32,12 @@ class Population {
         // Replace the current population with the new generation
         this.pop = offspring;
     }
+
+    averageFitness() {
+        var totalFitness = this.pop.reduce(function(sum, individual) {
+            return sum + individual.fitness;
+        }, 0);
+        var averageFitness = totalFitness / this.pop.length;
+        return averageFitness;
+    }
 }

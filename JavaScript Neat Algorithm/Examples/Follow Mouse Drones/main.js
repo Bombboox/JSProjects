@@ -1,13 +1,17 @@
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
-var SPEED = 10;
+var SPEED = 1000;
 var GENERATION_LIFESPAN = 1500;
+var GENERATION_LOG_COUNT = 5;
 var frames = 0;
+var generation = 0;
 
+var followMouse = false;
 var loop = true;
+var render = false;
 var population = new Population(150, Drone);
-var mouseX = 350;
-var mouseY = 350;
+var mouseX = random(0, canvas.width);
+var mouseY = random(0, canvas.height);
 
 //initialize everything
 const main = () => {
@@ -28,21 +32,30 @@ const draw = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             frames++;
 
-            ctx.fillStyle = "red";
-            ctx.beginPath();
-            ctx.arc(mouseX, mouseY, 5, 0, 2 * PI, true);
-            ctx.fill();
+            if(render) {
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.arc(mouseX, mouseY, 5, 0, 2 * PI, true);
+                ctx.fill();
+            }
 
             for(let individual of population.pop) {
                 //Drones target the mouse, hopefully get better at moving towards it
                 individual.targetX = mouseX; 
                 individual.targetY = mouseY;
                 individual.move();
-                individual.render(ctx);
+                if(render) individual.render(ctx);
             }
 
             if(frames > GENERATION_LIFESPAN) {
-                population.breed(50);
+                generation++;
+                if(generation % GENERATION_LOG_COUNT == 0) console.log(population.averageFitness());
+                
+                if(!followMouse) {
+                    mouseX = random(0, canvas.width);
+                    mouseY = random(0, canvas.height);
+                }
+                population.breed(150);
                 frames = 0;
             }
         }
@@ -51,8 +64,10 @@ const draw = () => {
 
 //get position of mouse on screen to use as target
 onmousemove = function(e) {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
+    if(followMouse) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    }
 }
 
 window.onload = main;

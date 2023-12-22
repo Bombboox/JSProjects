@@ -1,6 +1,6 @@
 class Drone extends Individual {
     constructor(x = random(0, 700), y = random(0, 700)) {
-        super(2, 2);
+        super(2, 1);
         this.x = x; //X coordinate of drone
         this.y = y; //Y coordinate of drone
         this.w = 5; //Width of drone (rendering)
@@ -17,17 +17,16 @@ class Drone extends Individual {
         let output = this.run();
         
         let angle = output[0];
-        let strength = activationFunctions.hyp(output[1]);
 
-        this.x += Math.cos(angle) * strength;
-        this.y += Math.sin(angle) * strength;
+        this.x += Math.cos(angle);
+        this.y += Math.sin(angle);
 
         let d2 = dist(this.x, this.y, this.targetX, this.targetY); //Distance form target after moving
         this.fitness = clamp(this.fitness + (d1 - d2), 0, 9999999); //Fitness inreases if distance decreased, decreases if distance increased, capped at 0 btw cuz negative numbers break something idk
     }
 
     run() {
-        return this.genome.run([this.targetX - this.x, this.targetY - this.y]);
+        return this.genome.run([this.x - this.targetX, this.y - this.targetY]);
     }
 
     render(c) {

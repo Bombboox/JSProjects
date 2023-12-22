@@ -7,7 +7,6 @@ class Genome {
         this.outputs = outputs; //number of output nodes
         this.offspring = offspring; //boolean, is it baby or no
 
-        this.layers = 2;
         this.nextNode = 1;
         this.innovationNumber = 1;
 
@@ -150,6 +149,7 @@ class Genome {
             connectionSet.add(conn.innovation);
         }
 
+        
         // Loop through the nodes of the second parent
         for (let node of partner.nodes) {
             // Check if the node has already been copied
