@@ -8,12 +8,12 @@
 </head>
 <body>
     <div id="content">
-        <div id="main-menu" class="scene">
+        <div id="main-menu" class="scene" >
             <div class="menu-bar">Main Menu</div>
-            <button id="find" class="menu-button">Find Match</button>
+            <button id="find" class="menu-button">Play</button>
         </div>  
 
-        <div id="find-match" class="scene">
+        <div id="find-match" class="scene"> 
             <div class="menu-bar">Find Match</div>
             <span id="characters-text">Select Avatar</span>
             <div id="characters"></div>
@@ -21,7 +21,36 @@
         
             <button id="back" class="menu-button">Back</button>
         </div>  
-    </div>
+
+        <div id="character-create" class="scene">
+            <div class="menu-bar">Find Match</div>
+            <div id="customize">
+                <div id="customize-options"></div>
+                <div id="enter-name"> 
+                    Name: <input type="text" class="input-field" placeholder="John Smith" id="name-input">
+                </div>
+                <button id="done" class="menu-button" disabled>Done</button>
+            </div>
+            <button id="back" class="menu-button">Back</button>
+        </div> 
+
+        <div id="match-making" class="scene">
+            <div class="menu-bar">Find Match</div>
+            <button id="random-match" class="menu-button">Random Match</button>
+            <button id="back" class="menu-button">Back</button>
+        </div>
+        
+        <div id="searching" class="scene">
+            <div class="menu-bar">Searching New Match</div>
+            <span id="searching-text">Searching</span>
+            <span class="loader"></span>
+            <button id="back" class="menu-button">Cancel</button>
+        </div> 
+    </div> 
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
+    <script src="Character.js"></script>
     <script src="menu.js"></script>
 </body>
 
