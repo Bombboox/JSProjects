@@ -1,6 +1,6 @@
 const canvas = document.createElement('canvas');
 const ctx = canvas.getContext('2d');
-var SPEED = 1000;
+var SPEED = 10;
 var GENERATION_LIFESPAN = 1500;
 var GENERATION_LOG_COUNT = 5;
 var frames = 0;
@@ -8,7 +8,7 @@ var generation = 0;
 
 var followMouse = false;
 var loop = true;
-var render = false;
+var render = true;
 var population = new Population(150, Drone);
 var mouseX = random(0, canvas.width);
 var mouseY = random(0, canvas.height);
