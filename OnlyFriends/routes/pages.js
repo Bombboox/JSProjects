@@ -9,4 +9,6 @@ router.get('/game', (req, res) => {
     res.render('game');
 });
 
+
+
 module.exports.router = router;

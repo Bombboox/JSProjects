@@ -15,6 +15,7 @@ const characters_box = document.getElementById("characters");
 var characters = JSON.parse(getCookie("characters")) || [];
 
 var scene;
+var roomId;
 
 //Socket.io
 var socket = io();
@@ -23,12 +24,22 @@ socket.on("connect", () => {
     console.log("Connected to server");
 });
 
-socket.on("roomCreated", (roomId) => {
-    console.log(`Room created with ID: ${roomId}`);
+socket.on("roomCreated", (id) => {
+    console.log('Room created!');
+    roomId = id;
+    initialize();
+    switchScene('game');
 });
 
-socket.on("roomJoined", (roomId) => {
-    console.log(`Room joined with ID: ${roomId}`);
+socket.on("roomJoined", (id) => {
+    console.log('Room joined!')
+    roomId = id;
+    initialize();
+    switchScene('game');
+});
+
+socket.on("partnerLeft", () => {
+    console.log(`Partner left!`);
 });
 
 function main() {
@@ -39,6 +50,11 @@ function main() {
     
     load();
 }
+
+window.addEventListener('beforeunload', () => {
+    // Mark the socket as disconnected due to navigation
+    socket.disconnectedByNavigation = true;
+});
 
 content.addEventListener("click", (e) => {
     if(e.target.classList.contains("locked")) return;

@@ -1,52 +1,67 @@
-//Socket.io
-var socket = io();
-
 //Rendering
-const canvas = document.createElement("canvas");
+const canvas = document.getElementById("ab");
 const ctx = canvas.getContext("2d");
 
 //Game Stuff
 const PLAYER_SPEED = 5;
 const keyboard = [];
+const players = {};
 var px = py = 0;
-var p2x = p2y = 0;
 var moving = false;
+var animationFrame;
 
-socket.on("move", ({x, y}) => {
-    p2x = x;
-    p2y = y;
+socket.on('move', ({x, y, playerId}) => {
+    players[playerId].x = x;
+    players[playerId].y = y;
 });
 
-function main() {
-    canvas.width = 700;
-    canvas.height = 700;
-    canvas.style = "background-color: black;";
-    
-    document.body.appendChild(canvas);
-    
-    document.addEventListener("keydown", (e) => {keyboard[e.keyCode] = true});
-    document.addEventListener("keyup", (e) => {keyboard[e.keyCode] = false});
+socket.on('playerJoined', (playerId) => {
+    players[playerId] = {playerId: playerId, x:0, y:0};
+    emitMovement();
+});
 
+socket.on('playerLeft', (playerId) => {
+    delete players[playerId];
+});
 
-    requestAnimationFrame(draw);
+socket.on('currentPlayers', (users) => {
+    console.log(users);
+    for(user in users) {
+        let playerId = users[user];
+        players[playerId] = {x: 0, y: 0, playerId: playerId};
+    }
+});
+
+function initialize() {
+    document.addEventListener('keydown', (e) => {keyboard[e.keyCode] = true});
+    document.addEventListener('keyup', (e) => {keyboard[e.keyCode] = false});
+
+    animationFrame = requestAnimationFrame(draw);
 }
 
 function draw() {
-    requestAnimationFrame(draw);
+    animationFrame = requestAnimationFrame(draw);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "blue";
-    ctx.fillRect(p2x, p2y, 25, 25);
+    ctx.fillStyle = 'blue';
+    for(const player in players) {
+        let p = players[player];
+        ctx.fillRect(p.x, p.y, 25, 25);
+    }
 
-    ctx.fillStyle = "white";
+    ctx.fillStyle = 'white';
     ctx.fillRect(px, py, 25, 25);
 
     movement();
 
     if(moving) {
-        socket.emit("move", {x : px, y: py});
+        emitMovement();
     }
+}
+
+function emitMovement() {
+    socket.emit('move', {roomId: roomId, x : px, y: py});
 }
 
 function movement() {
@@ -72,5 +87,3 @@ function movement() {
         moving = true;
     }
 }
-
-window.onload = main;
