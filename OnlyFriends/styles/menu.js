@@ -89,6 +89,10 @@ content.addEventListener("click", (e) => {
                 case "searching":
                     switchScene("match-making");
                     break;
+
+                case "game":
+                    switchScene("match-making");
+                    break;
             }
             break;
     
