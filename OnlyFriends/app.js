@@ -65,7 +65,26 @@ io.on('connection', (socket) => {
     });
 
     socket.on('move', ({roomId, x, y}) => {
-       socket.to(roomId).emit('move', {x: x, y: y, playerId: socket.id});
+        socket.to(roomId).emit('move', {x, y, playerId: socket.id})
+    });
+
+    socket.on('leaveRoom', (roomId) => {
+        if (rooms[roomId]) {
+            const index = rooms[roomId].users.indexOf(socket.id);
+            if (index !== -1) {
+                rooms[roomId].users.splice(index, 1);
+                socket.leave(roomId);
+                socket.to(roomId).emit('playerLeft', socket.id);
+
+                if (rooms[roomId].users.length === 0) {
+                    delete rooms[roomId];
+                }
+            }
+        }
+    });
+
+    socket.on('chatMessage', ({ roomId, name, message }) => {
+        io.to(roomId).emit('chatMessage', { name: name, playerId: socket.id, message });
     });
 });
 

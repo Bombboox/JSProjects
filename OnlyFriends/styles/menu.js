@@ -91,7 +91,7 @@ content.addEventListener("click", (e) => {
                     break;
 
                 case "game":
-                    switchScene("match-making");
+                    leaveMatch();
                     break;
             }
             break;
