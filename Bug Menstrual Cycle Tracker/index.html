@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Cycle</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            transition: background-color 0.5s;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        h1 {
+            color: #e91e63;
+            text-align: center;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .day {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .day:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .day.period {
+            background-color: #ffcccb;
+        }
+        .day.ovulation {
+            background-color: #b3e5fc;
+        }
+        .day.fertile {
+            background-color: #c8e6c9;
+        }
+        #cycleInfo, #controls {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        #cycleInfo:hover, #controls:hover {
+            background-color: #e8e8e8;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        canvas:hover {
+            transform: scale(1.02);
+        }
+        button {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background-color: #c2185b;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bug Cycle</h1>
+        <div id="controls">
+            <button id="prevMonth">Previous Month</button>
+            <button id="nextMonth">Next Month</button>
+            <button id="today">Today</button>
+        </div>
+        <div id="calendar"></div>
+        <div id="cycleInfo"></div>
+        <canvas id="cycleChart"></canvas>
+    </div>
+
+    <script>
+        const periods = [
+            moment('2024-04-18'),
+            moment('2024-05-14'),
+            moment('2024-06-10'),
+            moment('2024-07-08')
+        ];
+
+        let currentMonth = moment();
+        const assumedPeriodLength = 5; // Assuming a 5-day period
+
+        function calculateAverageCycleLength() {
+            let totalDays = 0;
+            for (let i = 1; i < periods.length; i++) {
+                totalDays += periods[i].diff(periods[i-1], 'days');
+            }
+            return Math.round(totalDays / (periods.length - 1));
+        }
+
+        const avgCycleLength = calculateAverageCycleLength();
+
+        function generateCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            calendarEl.innerHTML = '';
+
+            const startDate = moment(currentMonth).startOf('month').startOf('week');
+            const endDate = moment(currentMonth).endOf('month').endOf('week');
+
+            for (let m = moment(startDate); m.isBefore(endDate); m.add(1, 'days')) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'day';
+                dayEl.textContent = m.date();
+
+                if (m.month() !== currentMonth.month()) {
+                    dayEl.style.opacity = '0.5';
+                }
+
+                const isPeriod = isPeriodDay(m);
+                const isOvulation = isOvulationDay(m);
+                const isFertile = isFertileDay(m);
+
+                if (isPeriod) dayEl.classList.add('period');
+                if (isOvulation) dayEl.classList.add('ovulation');
+                if (isFertile) dayEl.classList.add('fertile');
+
+                dayEl.title = getDayInfo(m, isPeriod, isOvulation, isFertile);
+
+                calendarEl.appendChild(dayEl);
+            }
+        }
+
+        function isPeriodDay(date) {
+            return periods.some(p => date.isSame(p, 'day') || 
+                (date.isAfter(p) && date.diff(p, 'days') < assumedPeriodLength)) ||
+                predictFuturePeriods(date);
+        }
+
+        function predictFuturePeriods(date) {
+            const lastPeriod = periods[periods.length - 1];
+            const daysSinceLastPeriod = date.diff(lastPeriod, 'days');
+            return daysSinceLastPeriod % avgCycleLength < assumedPeriodLength && 
+                daysSinceLastPeriod > 0;
+        }
+
+        function isOvulationDay(date) {
+            const lastPeriod = periods[periods.length - 1];
+            const daysSinceLastPeriod = date.diff(lastPeriod, 'days');
+            return daysSinceLastPeriod % avgCycleLength === avgCycleLength - 14;
+        }
+
+        function isFertileDay(date) {
+            const lastPeriod = periods[periods.length - 1];
+            const daysSinceLastPeriod = date.diff(lastPeriod, 'days');
+            return daysSinceLastPeriod % avgCycleLength >= avgCycleLength - 19 && 
+                daysSinceLastPeriod % avgCycleLength <= avgCycleLength - 14;
+        }
+
+        function getDayInfo(date, isPeriod, isOvulation, isFertile) {
+            let info = date.format('YYYY-MM-DD');
+            if (isPeriod) info += ' - Period';
+            if (isOvulation) info += ' - Ovulation';
+            if (isFertile) info += ' - Fertile';
+            return info;
+        }
+
+        function updateInfo() {
+            const infoEl = document.getElementById('cycleInfo');
+            infoEl.innerHTML = `
+                <p>Average Cycle Length: ${avgCycleLength} days</p>
+                <p>Assumed Period Length: ${assumedPeriodLength} days</p>
+                <p>Current Month: ${currentMonth.format('MMMM YYYY')}</p>
+            `;
+        }
+
+        function createCycleChart() {
+            const ctx = document.getElementById('cycleChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: periods.map(p => p.format('YYYY-MM-DD')),
+                    datasets: [{
+                        label: 'Cycle Length',
+                        data: periods.slice(1).map((p, i) => p.diff(periods[i], 'days')),
+                        borderColor: '#e91e63',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Cycle Length Over Time'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Days'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentMonth.subtract(1, 'month');
+            generateCalendar();
+            updateInfo();
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentMonth.add(1, 'month');
+            generateCalendar();
+            updateInfo();
+        });
+
+        document.getElementById('today').addEventListener('click', () => {
+            currentMonth = moment();
+            generateCalendar();
+            updateInfo();
+        });
+
+        generateCalendar();
+        updateInfo();
+        createCycleChart();
+    </script>
+</body>
+</html>
